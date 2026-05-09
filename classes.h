@@ -11,8 +11,7 @@ const int MAX_ADMINS = 5;
 const int MAX_MESSAGES = 200;
 const int MAX_FAVORITES = 20;
 
-class Engine
-{
+class Engine {
 private:
 	int engineId;
 	string engineType;
@@ -43,14 +42,13 @@ public:
 	}
 };
 
-class Address
-{
+class Address   {
 private:
 	string street, city, province;
 
 public:
 	Address() : street(""), city(""), province("") {}
-	Address(const string &st, const string &ct, const string &pv) : street(st), city(ct), province(pv) {}
+	Address(string street, string city, string province) : street(street), city(city), province(province) {}
 
 	void display() const
 	{
@@ -58,3 +56,66 @@ public:
 	}
 };
 
+class Vehicle {
+protected:
+	int vehicleID;
+	string brand, model,color;
+	int year,mileage;
+	static int totalvehicles;
+
+public:
+	Vehicle() : vehicleID(0), brand("Unknown"), model("unknown"), color("unknown"), year(2000), mileage(0) 
+	{
+		totalvehicles++;
+	}
+
+	Vehicle(int vehicleID, string brand, string model, string color, int year,int mileage) :
+		vehicleID(vehicleID), brand(brand), model(model), color(color), year(year), mileage(mileage) 
+		{
+			totalvehicles++;
+		}
+
+	virtual ~Vehicle()
+	{
+		totalvehicles--;
+	}
+
+	// exception handling
+	void setyear(int yr)
+	{
+		if (yr < 1980 || yr > 2026)
+		{
+			throw string("invalid! enter year between 1980 and 2026");
+		}
+		year = yr;
+	}
+
+	void setmileage(int mil)
+	{
+		if (mil < 0 || mil > 1000000)
+		{
+			throw string("invalid! enter mileage between 0 and 1000000");
+		}
+		mileage = mil;
+	}
+
+	int getvehicleID() { return vehicleID; }
+	string getbrand() { return brand; }
+	string getmodel() { return model; }
+	string getcolor() { return color; }
+	int getyear() { return year; }
+	int getmileage() { return mileage; }
+	static int getTotalvehicles() { return totalvehicles; }
+
+	bool operator==(const Vehicle &other) const 
+	{
+		return vehicleID == other.vehicleID;
+	}
+
+	virtual void displaySpecs() const = 0;
+	virtual string getType() const = 0;
+	virtual Vehicle *clone() const = 0;
+	virtual void writeTypeData(ofstream &fout) const = 0;
+};
+
+int Vehicle::totalvehicles = 0;
