@@ -114,8 +114,93 @@ public:
 
 	virtual void displaySpecs() const = 0;
 	virtual string getType() const = 0;
-	virtual Vehicle *clone() const = 0;
+	virtual Vehicle *copy() const = 0;
 	virtual void writeTypeData(ofstream &fout) const = 0;
 };
 
 int Vehicle::totalvehicles = 0;
+
+class Car : public Vehicle {
+private:
+	Engine engine;
+	string bodyType;
+
+public:
+	Car() : Vehicle(), engine(), bodyType("Saden") {}
+	Car(int vehicleID, string brand, string model, string color, int year,int mileage, Engine engine, string bodyType) :
+		Vehicle(vehicleID,brand,model,color,year,mileage), engine(engine), bodyType(bodyType) {}
+
+	~Car() {}
+	
+	string getType() const { return bodyType; }
+
+	void displaySpecs() const
+	{
+		cout << "Vehicle Type: Car" << endl;
+		cout << "Vehicle ID: " << vehicleID << "||"
+			 << "Brand: " << brand << "||"
+			 << "Model: " << model << "||"
+			 << "color: " << color << "||"
+			 << "Mileage : " << mileage << "||"
+			 << "year: " << brand << "||" << endl;
+			 engine.display();
+	}
+
+	Vehicle *copy() const
+	{
+		return new Car(*this);
+	}
+	
+	void writeTypeData(ofstream &fout) const
+	{
+		fout << bodyType << "||"
+		<< engine.getEngineId() << "||"
+		<< engine.getEngineType() << "||"
+		<< engine.getDisplacement() << "||"
+		<< engine.getHorsepower() << "||"
+		<< engine.getTorque() << "||"
+		<< engine.getCylinders();
+	}
+	
+};
+
+class Bike : public Vehicle {
+private:
+	int engineCC;
+	bool hasCarrier;
+
+public:
+	Bike() : Vehicle(), engineCC(70), hasCarrier(true) {}
+	
+	Bike(int vehicleID, string brand, string model, string color, int year,int mileage, int engineCC, bool hasCarrier) :
+		Vehicle(vehicleID,brand,model,color,year,mileage), engineCC(engineCC), hasCarrier(hasCarrier) {}
+
+	~Bike() {}
+
+	string getType() const { return "Bike"; }
+
+	void displaySpecs() const
+	{
+		cout << "Vehicle Type: Byke" << endl;
+		cout << "Vehicle ID: " << vehicleID << "||"
+			 << "Brand: " << brand << "||"
+			 << "Model: " << model << "||"
+			 << "color: " << color << "||"
+			 << "Mileage : " << mileage << "||"
+			 << "year: " << brand << "||" << endl
+			 << "Engine CC: " << engineCC << "||" << endl
+			 << "Carrier: " << (hasCarrier ? "Yes" : "NO") << "||" << endl;
+	}
+
+	Vehicle *copy() const
+	{
+		return new Bike(*this);
+	}
+
+	void writeTypeData(ofstream &fout) const
+	{
+		fout << engineCC << "|| " << (hasCarrier ? 1 : 0);  
+	}
+
+};
+
