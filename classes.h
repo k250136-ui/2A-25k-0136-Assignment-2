@@ -99,12 +99,13 @@ public:
 		mileage = mil;
 	}
 
-	int getvehicleID() { return vehicleID; }
-	string getbrand() { return brand; }
-	string getmodel() { return model; }
-	string getcolor() { return color; }
-	int getyear() { return year; }
-	int getmileage() { return mileage; }
+	int getvehicleID() const { return vehicleID; }
+	string getbrand() const { return brand; }
+	string getmodel() const { return model; }
+	string getcolor() const { return color; }
+	int getyear() const { return year; }
+	int getmileage() const { return mileage; }
+	
 	static int getTotalvehicles() { return totalvehicles; }
 
 	bool operator==(const Vehicle &other) const 
@@ -204,3 +205,138 @@ public:
 
 };
 
+ostream &operator<<(ostream &out, const Vehicle &v)
+{
+	out << v.getType() << " [ID: " << v.getvehicleID() << "] "
+		<< v.getbrand() << " " << v.getmodel() << " " << v.getyear();
+	return out;
+}
+
+class Listing {
+private:
+	int listingId;
+	int sellerId;
+	double price;
+	string description;
+	string status;
+	string postedDate;
+	Vehicle *vehicle; 
+	static int totalListings;
+
+public:
+	Listing() : listingId(0), sellerId(0), price(0), description(""), status("pending"), postedDate(""), vehicle(0)
+	{
+		totalListings++;
+	}
+
+	Listing(int id, int sid, double p, const string &desc, const string &date, Vehicle *v)
+		: listingId(id), sellerId(sid), description(desc), status("pending"), postedDate(date), vehicle(v)
+	{
+		setPrice(p);
+		totalListings++;
+	}
+
+	Listing(const Listing &other) : listingId(other.listingId) , sellerId(other.sellerId), price(other.price), 
+	description(other.description), status(other.status), postedDate(other.postedDate) 
+	{
+		vehicle = ( other.vehicle != 0 ) ? other.vehicle->copy() : 0;
+		totalListings++;
+	}
+
+	Listing &operator=(const Listing &other)
+	{
+		if (this != &other)
+		{
+			delete vehicle;
+			listingId = other.listingId;
+			sellerId = other.sellerId;
+			price = other.price;
+			description = other.description;
+			status = other.status;
+			postedDate = other.postedDate;
+			vehicle = (other.vehicle != 0) ? other.vehicle->copy() : 0;
+		}
+		return *this;
+	}
+
+	~Listing()
+	{
+		delete vehicle;
+		vehicle = 0;
+		totalListings--;
+	}
+
+	static int getTotalListings() { return totalListings; }
+
+	int getListingId() const { return listingId; }
+	int getSellerId() const { return sellerId; }
+	double getPrice() const { return price; }
+	string getStatus() const { return status; }
+	string getDescription() const { return description; }
+	string getPostedDate() const { return postedDate; }
+	Vehicle *getVehicle() const { return vehicle; }
+
+	void setPrice(double p)
+	{
+		if (p <= 0)
+			throw string("Invalid price! Price must be greater than 0.");
+		price = p;
+	}
+
+	void setStatus(const string &s) { status = s; }
+
+	void update(double newPrice, const string &newDesc)
+	{
+		setPrice(newPrice);
+		description = newDesc;
+		status = "pending";
+	}
+
+	double operator*(double texPercent) const 
+	{
+		return price + (price * texPercent/100.0);
+	}
+
+	void display() const
+	{
+		cout << "\n Listing # " << listingId 
+			 << " || Status: " 
+			 << status << " || Seller#" 
+			 << sellerId << endl;
+		cout << "Price: PKR " << price << endl;
+		cout << "Description: " << description << endl;
+		cout << "Posted: " << postedDate << endl;
+		if (vehicle != 0)
+		{
+			cout << "Short View: " << *vehicle << endl;
+			vehicle->displaySpecs();
+		}
+	}
+
+	void saveToFile(ofstream &fout) const
+	{
+		if (vehicle == 0)
+			return;
+
+		fout << listingId << "|"
+			 << sellerId << "|"
+			 << price << "|"
+			 << description << "|"
+			 << status << "|"
+			 << postedDate << "|"
+			 << vehicle->getType() << "|"
+			 << vehicle->getvehicleID() << "|"
+			 << vehicle->getbrand() << "|"
+			 << vehicle->getmodel() << "|"
+			 << vehicle->getyear() << "|"
+			 << vehicle->getmileage() << "|"
+			 << vehicle->getcolor() << "|";
+
+		vehicle->writeTypeData(fout);
+		fout << "\n";
+	}
+
+	friend void applyDiscount(Listing &l, double percent);
+};
+
+int Listing::totalListings = 0;
