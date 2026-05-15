@@ -340,3 +340,193 @@ public:
 };
 
 int Listing::totalListings = 0;
+
+void applyDiscount(Listing &l, double percent)
+{
+	if (percent < 0 || percent > 90)
+	{
+		cout << "Invalid discount percentage!\n";
+		return;
+	}
+	l.price = l.price - (l.price * percent / 100.0);
+}
+
+class User
+{
+protected:
+	int userId;
+	string name, email, phone, password;
+	bool isActive;
+
+	static int totalUsers;
+
+public:
+	User() : userId(0), name(""), email(""), phone(""), password(""), isActive(true) { totalUsers++; }
+	User(int id, const string &n, const string &e, const string &ph, const string &pass)
+		: userId(id), name(n), email(e), phone(ph), password(pass), isActive(true)
+	{
+		totalUsers++;
+	}
+
+	virtual ~User() { totalUsers--; }
+
+	static int getTotalUsers() { return totalUsers; }
+
+	int getUserId() const { return userId; }
+	string getName() const { return name; }
+	string getEmail() const { return email; }
+	string getPhone() const { return phone; }
+	bool getIsActive() const { return isActive; }
+
+	void setActive(bool a) { isActive = a; }
+
+	bool login(const string &e, const string &pass) const
+	{
+		return (email == e && password == pass);
+	}
+
+	// POLYMORPHISM: pure virtual functions
+	virtual void displayProfile() const = 0;
+	virtual string getRole() const = 0;
+
+	// FRIEND FUNCTION #2
+	friend void resetUserPassword(User &u, const string &newPass);
+};
+
+int User::totalUsers = 0;
+
+void resetUserPassword(User &u, const string &newPass)
+{
+	u.password = newPass;
+}
+
+class SearchFilter
+{
+private:
+	double minPrice, maxPrice;
+	string brand;
+	int minYear, maxYear;
+
+public:
+	SearchFilter() : minPrice(0), maxPrice(999999999), brand(""), minYear(1980), maxYear(2026) {}
+
+	void setMinPrice(double p) { minPrice = p; }
+	void setMaxPrice(double p) { maxPrice = p; }
+	void setBrand(const string &b) { brand = b; }
+	void setMinYear(int y) { minYear = y; }
+	void setMaxYear(int y) { maxYear = y; }
+
+	bool isMatch(const Listing &l) const
+	{
+		Vehicle *v = l.getVehicle();
+		if (v == 0)
+			return false;
+
+		if (l.getStatus() != "active")
+			return false;
+		if (l.getPrice() < minPrice || l.getPrice() > maxPrice)
+			return false;
+		if (!brand.empty() && v->getbrand() != brand)
+			return false;
+		if (v->getyear() < minYear || v->getyear() > maxYear)
+			return false;
+		return true;
+	}
+};
+
+class Buyer : public User
+{
+private:
+	double budget;
+	string preferredBrand, preferredCity;
+	int favoriteIds[MAX_FAVORITES];
+	int favCount;
+
+public:
+	Buyer() : User(), budget(0), preferredBrand(""), preferredCity(""), favCount(0) {}
+
+	Buyer(int id, const string &n, const string &e, const string &ph, const string &pass,
+		  double b, const string &pb, const string &pc)
+		: User(id, n, e, ph, pass), budget(b), preferredBrand(pb), preferredCity(pc), favCount(0) {}
+
+	~Buyer() {}
+
+	string getRole() const { return "Buyer"; }
+
+	void displayProfile() const
+	{
+		cout << "Buyer #" << userId << " | " << name << " | Budget: " << budget
+			 << " | Favorites: " << favCount << "\n";
+	}
+
+	bool saveFavorite(int listingId)
+	{
+		if (favCount >= MAX_FAVORITES)
+			return false;
+
+		for (int i = 0; i < favCount; i++)
+			if (favoriteIds[i] == listingId)
+				return false;
+
+		favoriteIds[favCount++] = listingId;
+		return true;
+	}
+
+	void showFavorites() const
+	{
+		cout << "Favorites of " << name << ": ";
+		if (favCount == 0)
+		{
+			cout << "None\n";
+			return;
+		}
+
+		for (int i = 0; i < favCount; i++)
+			cout << favoriteIds[i] << " ";
+		cout << "\n";
+	}
+};
+
+class Seller : public User
+{
+private:
+	string companyName;
+	double rating;
+	int totalSales;
+	bool isVerified;
+	Address sellerAddress;
+
+public:
+	Seller() : User(), companyName(""), rating(0), totalSales(0), isVerified(false), sellerAddress() {}
+
+	Seller(int id, const string &n, const string &e, const string &ph, const string &pass,
+		   const string &comp, const Address &addr)
+		: User(id, n, e, ph, pass), companyName(comp), rating(0), totalSales(0), isVerified(false), sellerAddress(addr) {}
+
+	~Seller() {}
+
+	string getRole() const { return "Seller"; }
+
+	void displayProfile() const
+	{
+		cout << "Seller #" << userId << " | " << name << " | Company: " << companyName
+			 << " | Rating: " << rating << "\n";
+	}
+
+	// EXCEPTION HANDLING: invalid rating check
+	void setRating(double r)
+	{
+		if (r < 0 || r > 5)
+			throw string("Invalid rating! Enter between 0 and 5.");
+		rating = r;
+	}
+
+	// FRIEND FUNCTION #3
+	friend double calculateSellerTrustScore(const Seller &s);
+};
+
+double calculateSellerTrustScore(const Seller &s)
+{
+	double verifiedBonus = s.isVerified ? 1.0 : 0.0;
+	return (s.rating * 10.0) + (s.totalSales * 0.2) + verifiedBonus;
+}
