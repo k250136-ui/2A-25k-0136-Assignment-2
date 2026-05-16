@@ -48,7 +48,7 @@ private:
 
 public:
 	Address() : street(""), city(""), province("") {}
-	Address(string street, string city, string province) : street(street), city(city), province(province) {}
+	Address(const string &street,const string &city,const string &province) : street(street), city(city), province(province) {}
 
 	void display() const
 	{
@@ -530,3 +530,87 @@ double calculateSellerTrustScore(const Seller &s)
 	double verifiedBonus = s.isVerified ? 1.0 : 0.0;
 	return (s.rating * 10.0) + (s.totalSales * 0.2) + verifiedBonus;
 }
+
+class Admin : public User
+{
+private:
+	int adminLevel;
+	int approvedCount;
+	int rejectedCount;
+	string department;
+
+public:
+	Admin() : User(), adminLevel(1), approvedCount(0), rejectedCount(0), department("General") {}
+
+	Admin(int id, const string &n, const string &e, const string &ph, const string &pass, int level, const string &dept)
+		: User(id, n, e, ph, pass), adminLevel(level), approvedCount(0), rejectedCount(0), department(dept) {}
+
+	~Admin() {}
+
+	string getRole() const { return "Admin"; }
+
+	void displayProfile() const
+	{
+		cout << "Admin #" << userId << " | " << name << " | Level: " << adminLevel
+			 << " | Approved: " << approvedCount << "\n";
+	}
+
+	void approveListing(Listing &l)
+	{
+		l.setStatus("active");
+		approvedCount++;
+	}
+
+	void rejectListing(Listing &l)
+	{
+		l.setStatus("rejected");
+		rejectedCount++;
+	}
+};
+
+class Message
+{
+private:
+	int messageId;
+	int senderId;
+	int receiverId;
+	string subject;
+	string content;
+
+public:
+	Message() : messageId(0), senderId(0), receiverId(0), subject(""), content("") {}
+	Message(int id, int sId, int rId, const string &sub, const string &msg)
+		: messageId(id), senderId(sId), receiverId(rId), subject(sub), content(msg) {}
+
+	int getReceiverId() const { return receiverId; }
+
+	void display() const
+	{
+		cout << "Message #" << messageId << " | From: " << senderId << " To: " << receiverId << "\n";
+		cout << "Subject: " << subject << "\n";
+		cout << "Content: " << content << "\n";
+	}
+};
+
+class Review
+{
+private:
+	int reviewId;
+	int rating;
+	string comment;
+
+public:
+	Review() : reviewId(0), rating(0), comment("") {}
+	Review(int id, int r, const string &c) : reviewId(id), comment(c)
+	{
+		setRating(r);
+	}
+
+	void setRating(int r)
+	{
+		if (r < 1 || r > 5)
+			throw string("Invalid rating! Enter between 1 and 5.");
+		rating = r;
+	}
+};
+
